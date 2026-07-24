@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Torneo de LoL — Sitio oficial</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-inner">
+    <div class="nav-brand"><span class="dot"></span>Torneo de LoL</div>
+    <div class="nav-links" id="navLinks">
+      <a href="#inicio">Inicio</a>
+      <a href="#grupos">Grupos</a>
+      <a href="#calendario">Calendario</a>
+      <a href="#clasificacion">Clasificación</a>
+      <a href="#bracket">Bracket</a>
+    </div>
+    <button class="nav-toggle" id="navToggle">☰</button>
+  </div>
+</nav>
+
+<header class="hero" id="inicio">
+  <div class="container">
+    <div class="eyebrow">Temporada en vivo</div>
+    <h1 class="hero-title">El camino al <span class="accent">campeón</span> empieza acá.</h1>
+    <p class="hero-sub">20 equipos, dos grupos, fase de todos contra todos y una llave de eliminación directa hasta quedarse con uno solo.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">20</div><div class="label">Equipos</div></div>
+      <div class="hero-stat"><div class="num">2</div><div class="label">Grupos</div></div>
+      <div class="hero-stat"><div class="num">9</div><div class="label">Jornadas / grupo</div></div>
+      <div class="hero-stat"><div class="num">8</div><div class="label">Clasificados a bracket</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="block" id="grupos">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Fase de grupos</div>
+        <h2 class="section-title">Grupos</h2>
+      </div>
+      <div class="section-note">Sorteados por el administrador del torneo</div>
+    </div>
+    <div id="groupsWrap"></div>
+  </div>
+</section>
+
+<section class="block" id="calendario">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Fixture</div>
+        <h2 class="section-title">Calendario</h2>
+      </div>
+      <div class="section-note">Ida · 9 jornadas por grupo</div>
+    </div>
+    <div id="scheduleWrap"></div>
+  </div>
+</section>
+
+<section class="block" id="clasificacion">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Tabla de posiciones</div>
+        <h2 class="section-title">Clasificación</h2>
+      </div>
+      <div class="section-note">Top 4 de cada grupo avanza al bracket</div>
+    </div>
+    <div id="standingsWrap"></div>
+  </div>
+</section>
+
+<section class="block" id="bracket" style="border-bottom:none;">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Fase final</div>
+        <h2 class="section-title">Bracket</h2>
+      </div>
+      <div class="section-note">Top 8 · eliminación directa</div>
+    </div>
+    <div id="bracketWrap"></div>
+  </div>
+</section>
+
+<footer>Hecho por NotJorge</footer>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/standings.js"></script>
+<script src="js/bracket.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
