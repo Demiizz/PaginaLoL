@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Torneo de LoL — Panel de administrador</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin-body">
+
+<div class="admin-topbar">
+  <div class="container admin-topbar-inner">
+    <div class="nav-brand"><span class="dot"></span>Torneo de LoL</div>
+    <div class="admin-topbar-links">
+      <span class="admin-badge" id="cloudStatus">Modo admin</span>
+      <a href="index.html" class="btn btn-ghost btn-sm" target="_blank">Ver sitio público ↗</a>
+    </div>
+  </div>
+</div>
+
+<main class="admin-main">
+
+  <!-- Conexión con la nube (JSONBin) -->
+  <section class="admin-panel" id="panelCloud">
+    <div class="admin-panel-title">☁️ Conexión con la nube (JSONBin)</div>
+    <div class="admin-panel-sub" id="cloudSub"></div>
+    <div class="actions-row">
+      <input type="text" id="jsonbinKeyInput" placeholder="Pegá acá tu Master Key de jsonbin.io" style="max-width:420px;" />
+      <button id="saveKeyBtn" class="btn btn-secondary btn-sm">Guardar key</button>
+      <button id="clearKeyBtn" class="btn btn-ghost btn-sm">Quitar key</button>
+    </div>
+    <div class="field-hint" style="margin-top:10px;">La key se guarda solo en este navegador (nunca se sube al repo). Sin ella podés seguir usando el panel, pero los cambios no se sincronizan a la nube — quedan solo en tu localStorage.</div>
+  </section>
+
+  <div class="admin-steps" id="stepsBar"></div>
+
+  <!-- PASO 1: Equipos -->
+  <section class="admin-panel" id="panelTeams">
+    <div class="admin-panel-title">1. Equipos</div>
+    <div class="admin-panel-sub">Un equipo por línea, 20 en total.</div>
+    <div class="field-hint">Editá los nombres y arrancá el sorteo cuando estén los 20.</div>
+    <textarea id="teamsInput" rows="8"></textarea>
+    <div id="teamCount" class="count-line"></div>
+    <div class="actions-row" style="margin-top:16px;">
+      <button id="drawStartBtn" class="btn btn-primary">Iniciar sorteo</button>
+    </div>
+  </section>
+
+  <!-- PASO 2: Sorteo -->
+  <section class="admin-panel" id="panelDraw" style="display:none;">
+    <div class="admin-panel-title">2. Sorteo en vivo</div>
+    <div class="admin-panel-sub">Revelación equipo por equipo, alternando Grupo A / Grupo B.</div>
+    <div class="actions-row">
+      <button id="revealBtn" class="btn btn-primary">Sortear equipo</button>
+      <button id="muteBtn" class="icon-btn" title="Silenciar">🔊</button>
+      <button id="editTeamsBtn" class="btn btn-ghost btn-sm">Editar equipos</button>
+    </div>
+    <div id="drawStatus" class="status-line"></div>
+    <div class="pods-grid">
+      <div class="pod A"><div class="pod-label">Grupo A</div><div id="slotsA"></div></div>
+      <div class="pod B"><div class="pod-label">Grupo B</div><div id="slotsB"></div></div>
+    </div>
+    <div class="actions-row">
+      <button id="genScheduleBtn" class="btn btn-secondary" style="display:none;">Generar calendario</button>
+    </div>
+  </section>
+
+  <!-- PASO 3: Resultados -->
+  <section class="admin-panel" id="panelResults" style="display:none;">
+    <div class="admin-panel-title">3. Resultados</div>
+    <div class="admin-panel-sub">Cargá el marcador de cada partido. La clasificación se recalcula sola.</div>
+    <div class="tabs">
+      <button class="tab" id="resTabA" data-group="A">Grupo A</button>
+      <button class="tab" id="resTabB" data-group="B">Grupo B</button>
+    </div>
+    <div class="tabs" id="resRoundTabs"></div>
+    <div id="resultsList"></div>
+  </section>
+
+  <!-- PASO 4: Clasificación -->
+  <section class="admin-panel" id="panelStandings" style="display:none;">
+    <div class="admin-panel-title">4. Clasificación</div>
+    <div class="admin-panel-sub">Se calcula sola a partir de los resultados cargados. Top 4 clasifica.</div>
+    <div id="standingsAdminWrap" class="groups-grid"></div>
+  </section>
+
+  <!-- PASO 5: Bracket -->
+  <section class="admin-panel" id="panelBracket" style="display:none;">
+    <div class="admin-panel-title">5. Bracket (Top 8)</div>
+    <div class="admin-panel-sub">Se arma solo con los 4 primeros de cada grupo: A1-B4, A2-B3, B1-A4, B2-A3.</div>
+    <div class="actions-row">
+      <button id="genBracketBtn" class="btn btn-primary">Generar bracket (Top 8)</button>
+      <button id="rebuildBracketBtn" class="btn btn-ghost btn-sm" style="display:none;">Rehacer bracket</button>
+    </div>
+    <div id="bracketNotice" class="bracket-info-line"></div>
+    <div id="championBannerAdmin" class="champion-banner" style="display:none;"></div>
+    <div id="bracketAdminWrap"></div>
+  </section>
+
+  <!-- PASO 6: Publicar -->
+  <section class="admin-panel" id="panelPublish">
+    <div class="admin-panel-title">6. Publicar</div>
+    <div class="admin-panel-sub">index.html lee <code>data.json</code>. Exportá y subí ese archivo a tu repo cada vez que actualices algo.</div>
+    <div class="export-panel">
+      <div class="hint">El sitio público NO ve tus cambios automáticamente: exportá <code>data.json</code> y reemplazalo en tu repositorio de GitHub Pages.</div>
+      <div class="actions-row" style="margin-bottom:0;">
+        <button id="exportBtn" class="btn btn-gold">Exportar data.json</button>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Importar data.json
+          <input type="file" id="importInput" accept="application/json" style="display:none;" />
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-panel danger-zone">
+    <div class="admin-panel-title">Zona de riesgo</div>
+    <div class="admin-panel-sub">Borra el sorteo, calendario, resultados y bracket. No se puede deshacer.</div>
+    <button id="resetAllBtn" class="btn btn-ghost">Reiniciar torneo completo</button>
+  </section>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/standings.js"></script>
+<script src="js/bracket.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
