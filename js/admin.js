@@ -11,7 +11,7 @@ const DEFAULT_TEAMS = [
   "Bizcochitos de Biboo","Cuyos Tilteados","Tepigod","Destructores de tetas y qlos",
   "TTV (Travestis Traviesas Veracruzanas)","Six Or Seven Devil's (SSD)","Mondongos","Vanity",
   "Los Mas Penudos","taiwan forever","MINITAS A MI MD","LosPapusKarp_2.0",
-  "Its Over","FF AL 15","AURA PODEROSA","GG Epstein (ISLAND)"
+  "Its Over","FF AL 15","La Minita es SUPPORT","T2"
 ];
 
 let data = getEmptyTournament(); // se reemplaza en boot() antes de dibujar nada
