@@ -23,22 +23,22 @@ const Draw = {
   teams: [],
   drawOrder: [],
   revealIndex: 0,
-  slots: { A: Array(10).fill(null), B: Array(10).fill(null) },
+  slots: { A: Array(11).fill(null), B: Array(11).fill(null) },
   nextSlotIndex: { A: 0, B: 0 },
   drawing: false,
 
-  /** Arranca un sorteo nuevo con los 20 equipos cargados */
+  /** Arranca un sorteo nuevo con los 22 equipos cargados */
   init(teams) {
     this.teams = teams;
     this.drawOrder = shuffle(teams);
     this.revealIndex = 0;
-    this.slots = { A: Array(10).fill(null), B: Array(10).fill(null) };
+    this.slots = { A: Array(11).fill(null), B: Array(11).fill(null) };
     this.nextSlotIndex = { A: 0, B: 0 };
     this.drawing = false;
   },
 
   isFinished() {
-    return this.revealIndex >= 20;
+    return this.revealIndex >= 22;
   },
 
   toggleSound() {

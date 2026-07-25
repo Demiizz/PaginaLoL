@@ -88,7 +88,7 @@ el("clearKeyBtn").addEventListener("click", () => {
 /* ---------- Barra de pasos ---------- */
 function renderSteps() {
   const steps = [
-    { label: "Equipos", done: data.teams.length === 20 },
+    { label: "Equipos", done: data.teams.length === 22 },
     { label: "Sorteo", done: !!data.groups },
     { label: "Resultados", done: !!data.schedule },
     { label: "Clasificación", done: !!data.schedule },
@@ -112,15 +112,15 @@ function currentTeamsFromInput() {
 function updateTeamCount() {
   const t = currentTeamsFromInput();
   const count = el("teamCount");
-  count.textContent = t.length + " / 20 equipos cargados";
-  count.className = "count-line " + (t.length === 20 ? "ok" : "bad");
-  el("drawStartBtn").disabled = t.length !== 20;
+  count.textContent = t.length + " / 22 equipos cargados";
+  count.className = "count-line " + (t.length === 22 ? "ok" : "bad");
+  el("drawStartBtn").disabled = t.length !== 22;
 }
 teamsInput.addEventListener("input", updateTeamCount);
 
 el("drawStartBtn").addEventListener("click", () => {
   const teams = currentTeamsFromInput();
-  if (teams.length !== 20) return;
+  if (teams.length !== 22) return;
 
   const hasProgress = !!data.groups;
   if (hasProgress) {
@@ -141,7 +141,7 @@ el("drawStartBtn").addEventListener("click", () => {
   el("genScheduleBtn").style.display = "none";
   el("revealBtn").style.display = "inline-block";
   el("revealBtn").disabled = false;
-  el("drawStatus").textContent = "Quedan 20 equipos por sortear.";
+  el("drawStatus").textContent = "Quedan 22 equipos por sortear.";
   renderDrawSlots();
   renderSteps();
 });
@@ -167,7 +167,7 @@ function renderDrawSlots() {
   ["A", "B"].forEach((g) => {
     const container = el("slots" + g);
     container.innerHTML = "";
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 11; i++) {
       container.innerHTML += slotHtml(g, i, Draw.slots[g][i]);
     }
   });
@@ -187,7 +187,7 @@ el("revealBtn").addEventListener("click", () => {
       slotEl.querySelector(".slot-name").textContent = name;
       slotEl.querySelector(".slot-name").title = name;
       el("revealBtn").disabled = false;
-      const remaining = 20 - Draw.revealIndex;
+      const remaining = 22 - Draw.revealIndex;
       el("drawStatus").textContent = remaining > 0 ? "Quedan " + remaining + " equipos por sortear." : "¡Grupos completos!";
     },
     onComplete() {
@@ -439,7 +439,7 @@ el("resetAllBtn").addEventListener("click", async () => {
    Arranque: reconstruye la UI según el estado guardado
    ============================================================ */
 function bootFromData() {
-  teamsInput.value = data.teams.length === 20 ? data.teams.join("\n") : DEFAULT_TEAMS.join("\n");
+  teamsInput.value = data.teams.length === 22 ? data.teams.join("\n") : DEFAULT_TEAMS.join("\n");
   renderCloudPanel();
   updateTeamCount();
   renderSteps();
