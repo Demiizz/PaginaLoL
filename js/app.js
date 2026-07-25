@@ -23,6 +23,49 @@ document.querySelectorAll(".nav-links a").forEach((a) => {
   a.addEventListener("click", () => document.getElementById("navLinks").classList.remove("open"));
 });
 
+/* ---------- Revelado de secciones al hacer scroll ---------- */
+function initScrollReveal() {
+  const targets = document.querySelectorAll(".reveal");
+  if (!("IntersectionObserver" in window) || targets.length === 0) {
+    targets.forEach((t) => t.classList.add("visible"));
+    return;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -60px 0px" }
+  );
+  targets.forEach((t) => observer.observe(t));
+}
+
+/* ---------- Resalta el link de nav de la sección visible ---------- */
+function initScrollSpy() {
+  const links = document.querySelectorAll(".nav-links a");
+  const sections = Array.from(links)
+    .map((a) => document.querySelector(a.getAttribute("href")))
+    .filter(Boolean);
+  if (!("IntersectionObserver" in window) || sections.length === 0) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        links.forEach((a) => a.classList.remove("active"));
+        const active = document.querySelector('.nav-links a[href="#' + entry.target.id + '"]');
+        if (active) active.classList.add("active");
+      });
+    },
+    { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+  );
+  sections.forEach((s) => observer.observe(s));
+}
+
 /* ---------- Carga inicial ---------- */
 (async function init() {
   publicData = await loadTournamentPublic();
@@ -30,6 +73,8 @@ document.querySelectorAll(".nav-links a").forEach((a) => {
   renderSchedule();
   renderStandings();
   renderBracket();
+  initScrollReveal();
+  initScrollSpy();
 })();
 
 /* ---------- Grupos ---------- */
