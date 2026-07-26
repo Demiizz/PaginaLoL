@@ -1,9 +1,11 @@
 /* =========================================================
    draw.js — Motor del sorteo (animación + sonido)
    ---------------------------------------------------------
-   Mantiene EXACTAMENTE la lógica original: 20 equipos, dos
-   grupos de 10, revelación una por una alternando A/B, con
-   "parpadeo" de nombres al azar antes de fijar el definitivo.
+   Funciona con CUALQUIER cantidad de equipos (mínimo 4): se
+   dividen lo más parejo posible en dos grupos (si la cantidad
+   es impar, el Grupo A queda con uno más), revelación una por
+   una alternando A/B, con "parpadeo" de nombres al azar antes
+   de fijar el definitivo.
    No maneja el DOM directamente: admin.js le pasa callbacks
    para pintar cada paso, así queda reutilizable y testeable.
    ========================================================= */
@@ -23,22 +25,26 @@ const Draw = {
   teams: [],
   drawOrder: [],
   revealIndex: 0,
-  slots: { A: Array(11).fill(null), B: Array(11).fill(null) },
+  slots: { A: [], B: [] },
   nextSlotIndex: { A: 0, B: 0 },
   drawing: false,
 
-  /** Arranca un sorteo nuevo con los 22 equipos cargados */
+  /** Arranca un sorteo nuevo con los equipos cargados. Si la cantidad es impar,
+   *  el Grupo A queda con uno más que el Grupo B (la revelación siempre
+   *  empieza por A, así que el equipo "extra" siempre cae ahí). */
   init(teams) {
     this.teams = teams;
     this.drawOrder = shuffle(teams);
     this.revealIndex = 0;
-    this.slots = { A: Array(11).fill(null), B: Array(11).fill(null) };
+    const sizeA = Math.ceil(teams.length / 2);
+    const sizeB = Math.floor(teams.length / 2);
+    this.slots = { A: Array(sizeA).fill(null), B: Array(sizeB).fill(null) };
     this.nextSlotIndex = { A: 0, B: 0 };
     this.drawing = false;
   },
 
   isFinished() {
-    return this.revealIndex >= 22;
+    return this.revealIndex >= this.teams.length;
   },
 
   toggleSound() {
@@ -101,7 +107,7 @@ const Draw = {
     }, flickerMs);
   },
 
-  /** Devuelve { A:[10 nombres], B:[10 nombres] } una vez terminado el sorteo */
+  /** Devuelve { A:[nombres], B:[nombres] } una vez terminado el sorteo */
   getGroups() {
     return {
       A: this.slots.A.map((s) => s.name),
