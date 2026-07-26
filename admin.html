@@ -69,8 +69,8 @@
   <!-- PASO 1: Equipos -->
   <section class="admin-panel" id="panelTeams">
     <div class="admin-panel-title">1. Equipos</div>
-    <div class="admin-panel-sub">Un equipo por línea, 22 en total.</div>
-    <div class="field-hint">Editá los nombres y arrancá el sorteo cuando estén los 22.</div>
+    <div class="admin-panel-sub">Un equipo por línea. Cualquier cantidad (mínimo 4): se dividen lo más parejo posible entre Grupo A y Grupo B (si es impar, el Grupo A queda con uno más) y las jornadas se calculan solas.</div>
+    <div class="field-hint">Editá los nombres (agregá o quitá los que quieras) y arrancá el sorteo cuando la cantidad sea válida.</div>
     <textarea id="teamsInput" rows="8"></textarea>
     <div id="teamCount" class="count-line"></div>
     <div class="actions-row" style="margin-top:16px;">
@@ -101,6 +101,7 @@
   <section class="admin-panel" id="panelResults" style="display:none;">
     <div class="admin-panel-title">3. Resultados</div>
     <div class="admin-panel-sub">Cargá el marcador de cada partido. La clasificación se recalcula sola.</div>
+    <button class="btn btn-ghost btn-sm" id="regenScheduleBtn" style="margin-bottom:14px;" title="Vuelve a armar el calendario con los mismos grupos (por ejemplo, para corregir el bug de equipos impares). Borra los resultados ya cargados.">🔄 Regenerar calendario</button>
     <div class="tabs">
       <button class="tab" id="resTabA" data-group="A">Grupo A</button>
       <button class="tab" id="resTabB" data-group="B">Grupo B</button>
