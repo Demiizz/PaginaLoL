@@ -24,6 +24,16 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+/** Cantidad mínima de equipos para poder armar 2 grupos con Top 4 clasificable cada uno. */
+function isValidTeamCount(n) {
+  return n >= 4;
+}
+
+/** Jornadas que necesita un grupo de "size" equipos (impar = una jornada más, por el descanso rotativo). */
+function jornadasPara(size) {
+  return size % 2 === 0 ? size - 1 : size;
+}
+
 /** Guarda siempre local (rápido, funciona offline) y además
  *  intenta sincronizar a la nube si hay key configurada. */
 function persist() {
@@ -88,7 +98,7 @@ el("clearKeyBtn").addEventListener("click", () => {
 /* ---------- Barra de pasos ---------- */
 function renderSteps() {
   const steps = [
-    { label: "Equipos", done: data.teams.length === 22 },
+    { label: "Equipos", done: isValidTeamCount(data.teams.length) },
     { label: "Sorteo", done: !!data.groups },
     { label: "Resultados", done: !!data.schedule },
     { label: "Clasificación", done: !!data.schedule },
@@ -112,15 +122,30 @@ function currentTeamsFromInput() {
 function updateTeamCount() {
   const t = currentTeamsFromInput();
   const count = el("teamCount");
-  count.textContent = t.length + " / 22 equipos cargados";
-  count.className = "count-line " + (t.length === 22 ? "ok" : "bad");
-  el("drawStartBtn").disabled = t.length !== 22;
+  const valid = isValidTeamCount(t.length);
+  let msg = t.length + " equipo" + (t.length === 1 ? "" : "s") + " cargado" + (t.length === 1 ? "" : "s");
+  if (t.length > 0) {
+    if (t.length < 4) {
+      msg += " — cargá al menos 4 (2 por grupo)";
+    } else {
+      const sizeA = Math.ceil(t.length / 2);
+      const sizeB = Math.floor(t.length / 2);
+      if (sizeA === sizeB) {
+        msg += " → " + sizeA + " por grupo, " + jornadasPara(sizeA) + " jornadas";
+      } else {
+        msg += " → Grupo A: " + sizeA + " (" + jornadasPara(sizeA) + " jornadas), Grupo B: " + sizeB + " (" + jornadasPara(sizeB) + " jornadas)";
+      }
+    }
+  }
+  count.textContent = msg;
+  count.className = "count-line " + (valid ? "ok" : "bad");
+  el("drawStartBtn").disabled = !valid;
 }
 teamsInput.addEventListener("input", updateTeamCount);
 
 el("drawStartBtn").addEventListener("click", () => {
   const teams = currentTeamsFromInput();
-  if (teams.length !== 22) return;
+  if (!isValidTeamCount(teams.length)) return;
 
   const hasProgress = !!data.groups;
   if (hasProgress) {
@@ -141,7 +166,7 @@ el("drawStartBtn").addEventListener("click", () => {
   el("genScheduleBtn").style.display = "none";
   el("revealBtn").style.display = "inline-block";
   el("revealBtn").disabled = false;
-  el("drawStatus").textContent = "Quedan 22 equipos por sortear.";
+  el("drawStatus").textContent = "Quedan " + teams.length + " equipos por sortear.";
   renderDrawSlots();
   renderSteps();
 });
@@ -167,7 +192,7 @@ function renderDrawSlots() {
   ["A", "B"].forEach((g) => {
     const container = el("slots" + g);
     container.innerHTML = "";
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < Draw.slots[g].length; i++) {
       container.innerHTML += slotHtml(g, i, Draw.slots[g][i]);
     }
   });
@@ -187,7 +212,7 @@ el("revealBtn").addEventListener("click", () => {
       slotEl.querySelector(".slot-name").textContent = name;
       slotEl.querySelector(".slot-name").title = name;
       el("revealBtn").disabled = false;
-      const remaining = 22 - Draw.revealIndex;
+      const remaining = Draw.teams.length - Draw.revealIndex;
       el("drawStatus").textContent = remaining > 0 ? "Quedan " + remaining + " equipos por sortear." : "¡Grupos completos!";
     },
     onComplete() {
@@ -221,6 +246,24 @@ el("genScheduleBtn").addEventListener("click", () => {
   renderSteps();
 });
 
+el("regenScheduleBtn").addEventListener("click", () => {
+  if (!data.groups) return;
+  const ok = confirm(
+    "Esto vuelve a armar el calendario (Grupo A y B) usando los mismos equipos ya sorteados, con la lógica corregida (antes generaba partidos duplicados y equipos contra sí mismos si la cantidad por grupo era impar). " +
+    "Los resultados y el bracket cargados se van a borrar. ¿Continuar?"
+  );
+  if (!ok) return;
+  data.schedule = generateFullSchedule(data.groups);
+  data.results = {};
+  data.bracket = null;
+  persist();
+  resView = { group: "A", round: 0 };
+  renderResults();
+  renderStandingsAdmin();
+  renderBracketPanel();
+  renderSteps();
+});
+
 /* ============================================================
    PASO 3 — Resultados
    ============================================================ */
@@ -245,6 +288,15 @@ function renderResults() {
   const rounds = data.schedule[resView.group][resView.round];
   const list = el("resultsList");
   list.innerHTML = "";
+
+  const byeTeam = getByeTeam(data.groups[resView.group], rounds);
+  if (byeTeam) {
+    const notice = document.createElement("div");
+    notice.className = "field-hint";
+    notice.style.marginBottom = "10px";
+    notice.textContent = "😴 Descansa esta jornada: " + byeTeam;
+    list.appendChild(notice);
+  }
 
   rounds.forEach((pair, matchIndex) => {
     const key = matchKey(resView.group, resView.round, matchIndex);
@@ -439,7 +491,7 @@ el("resetAllBtn").addEventListener("click", async () => {
    Arranque: reconstruye la UI según el estado guardado
    ============================================================ */
 function bootFromData() {
-  teamsInput.value = data.teams.length === 22 ? data.teams.join("\n") : DEFAULT_TEAMS.join("\n");
+  teamsInput.value = data.teams.length > 0 ? data.teams.join("\n") : DEFAULT_TEAMS.join("\n");
   renderCloudPanel();
   updateTeamCount();
   renderSteps();
