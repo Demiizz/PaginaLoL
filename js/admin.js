@@ -177,6 +177,135 @@ el("editTeamsBtn").addEventListener("click", () => {
 });
 
 /* ============================================================
+   PASO 2b — Asignación manual de grupos (alternativa al sorteo)
+   ---------------------------------------------------------
+   Permite elegir a mano quién va en cada grupo, en vez de
+   dejarlo al azar. Reusa los mismos slots visuales que el
+   sorteo (ya bloqueados, sin animación) y el mismo data.groups,
+   así el resto del flujo (calendario, resultados, bracket) no
+   se entera de si el sorteo fue random o manual.
+   ============================================================ */
+function parseManualList(textareaEl) {
+  return textareaEl.value.split("\n").map((t) => t.trim()).filter(Boolean);
+}
+
+/** Valida lo cargado en las dos cajas contra la lista de equipos y pinta el estado.
+ *  Devuelve { A, B } si es válido, o null si falta corregir algo. */
+function updateManualStatus() {
+  const teams = currentTeamsFromInput();
+  const a = parseManualList(el("manualGroupA"));
+  const b = parseManualList(el("manualGroupB"));
+  const combined = [...a, ...b];
+  const statusEl = el("manualStatus");
+
+  const counts = {};
+  combined.forEach((t) => { counts[t] = (counts[t] || 0) + 1; });
+  const dupes = Object.keys(counts).filter((t) => counts[t] > 1);
+  const known = new Set(teams);
+  const unknown = combined.filter((t) => !known.has(t));
+  const missing = teams.filter((t) => !combined.includes(t));
+
+  let msg = "Grupo A: " + a.length + " · Grupo B: " + b.length;
+  let ok = true;
+
+  if (a.length < 2 || b.length < 2) {
+    msg += " — cada grupo necesita al menos 2 equipos";
+    ok = false;
+  }
+  if (dupes.length) {
+    msg += " — repetido: " + dupes.join(", ");
+    ok = false;
+  }
+  if (unknown.length) {
+    msg += " — no está en la lista de equipos: " + unknown.join(", ");
+    ok = false;
+  }
+  if (missing.length) {
+    msg += " — todavía falta ubicar: " + missing.join(", ");
+    ok = false;
+  }
+
+  statusEl.textContent = msg;
+  statusEl.className = "count-line " + (ok ? "ok" : "bad");
+  el("manualConfirmBtn").disabled = !ok;
+  return ok ? { A: a, B: b } : null;
+}
+
+/** Abre el panel manual. Si se pasan grupos existentes, los precarga
+ *  (para editar un sorteo ya hecho); si no, reparte los equipos por mitad
+ *  como punto de partida y el admin los reordena a gusto. */
+function openManualPanel(prefillGroups) {
+  el("panelTeams").style.display = "none";
+  el("panelDraw").style.display = "none";
+  el("panelManual").style.display = "block";
+
+  let groupA, groupB;
+  if (prefillGroups) {
+    groupA = prefillGroups.A;
+    groupB = prefillGroups.B;
+  } else {
+    const teams = currentTeamsFromInput();
+    const sizeA = Math.ceil(teams.length / 2);
+    groupA = teams.slice(0, sizeA);
+    groupB = teams.slice(sizeA);
+  }
+  el("manualGroupA").value = groupA.join("\n");
+  el("manualGroupB").value = groupB.join("\n");
+  updateManualStatus();
+  window.scrollTo({ top: el("panelManual").offsetTop - 20, behavior: "smooth" });
+}
+
+el("manualGroupA").addEventListener("input", updateManualStatus);
+el("manualGroupB").addEventListener("input", updateManualStatus);
+
+el("manualStartBtn").addEventListener("click", () => {
+  const teams = currentTeamsFromInput();
+  if (!isValidTeamCount(teams.length)) return;
+
+  const hasProgress = !!data.groups;
+  if (hasProgress) {
+    const ok = confirm("Ya existe un sorteo (y posiblemente calendario/resultados/bracket). Elegir los grupos a mano los va a borrar. ¿Continuar?");
+    if (!ok) return;
+  }
+
+  data = getEmptyTournament();
+  data.teams = teams;
+  persist();
+  openManualPanel(null);
+  renderSteps();
+});
+
+el("manualEditTeamsBtn").addEventListener("click", () => {
+  el("panelManual").style.display = "none";
+  el("panelTeams").style.display = "block";
+  window.scrollTo({ top: el("panelTeams").offsetTop - 20, behavior: "smooth" });
+});
+
+el("editGroupsManualBtn").addEventListener("click", () => {
+  openManualPanel(data.groups);
+});
+
+el("manualConfirmBtn").addEventListener("click", () => {
+  const result = updateManualStatus();
+  if (!result) return;
+
+  data.groups = result;
+  persist();
+
+  el("panelManual").style.display = "none";
+  el("panelTeams").style.display = "none";
+  el("panelDraw").style.display = "block";
+  el("revealBtn").style.display = "none";
+  el("drawStatus").textContent = "¡Grupos completos!";
+  ["A", "B"].forEach((g) => {
+    const container = el("slots" + g);
+    container.innerHTML = data.groups[g].map((name, i) => slotHtml(g, i, { name, locked: true })).join("");
+  });
+  el("genScheduleBtn").style.display = data.schedule ? "none" : "inline-block";
+  renderSteps();
+});
+
+/* ============================================================
    PASO 2 — Sorteo en vivo
    ============================================================ */
 function slotHtml(group, i, slotData) {
