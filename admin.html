@@ -75,6 +75,30 @@
     <div id="teamCount" class="count-line"></div>
     <div class="actions-row" style="margin-top:16px;">
       <button id="drawStartBtn" class="btn btn-primary">Iniciar sorteo</button>
+      <button id="manualStartBtn" class="btn btn-secondary">Elegir equipos manualmente</button>
+    </div>
+  </section>
+
+  <!-- PASO 2b: Asignación manual de grupos -->
+  <section class="admin-panel" id="panelManual" style="display:none;">
+    <div class="admin-panel-title">2. Asignación manual de grupos</div>
+    <div class="admin-panel-sub">Repartí los equipos entre los dos grupos vos mismo (uno por línea en cada caja). Tenés que usar cada equipo cargado exactamente una vez entre los dos grupos — podés mover nombres de una caja a la otra libremente.</div>
+    <div class="actions-row">
+      <button id="manualEditTeamsBtn" class="btn btn-ghost btn-sm">← Volver a la lista de equipos</button>
+    </div>
+    <div class="pods-grid">
+      <div class="pod A">
+        <div class="pod-label">Grupo A</div>
+        <textarea id="manualGroupA" rows="10"></textarea>
+      </div>
+      <div class="pod B">
+        <div class="pod-label">Grupo B</div>
+        <textarea id="manualGroupB" rows="10"></textarea>
+      </div>
+    </div>
+    <div id="manualStatus" class="count-line"></div>
+    <div class="actions-row" style="margin-top:16px;">
+      <button id="manualConfirmBtn" class="btn btn-primary">Confirmar grupos</button>
     </div>
   </section>
 
@@ -86,6 +110,7 @@
       <button id="revealBtn" class="btn btn-primary">Sortear equipo</button>
       <button id="muteBtn" class="icon-btn" title="Silenciar">🔊</button>
       <button id="editTeamsBtn" class="btn btn-ghost btn-sm">Editar equipos</button>
+      <button id="editGroupsManualBtn" class="btn btn-ghost btn-sm">Editar grupos a mano</button>
     </div>
     <div id="drawStatus" class="status-line"></div>
     <div class="pods-grid">
