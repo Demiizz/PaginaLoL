@@ -26,7 +26,7 @@ function getEmptyTournament() {
     updatedAt: null,
     teams: [],           // lista cruda de 20 nombres cargados en el sorteo
     groups: null,        // { A: [10 nombres], B: [10 nombres] }
-    schedule: null,      // { A: [ [ [t1,t2], ... ] x9 ], B: [...] }
+    schedule: null,      // { A: {teams, roundsCount, matches:[{id,t1,t2,round,time}]}, B: {...} } — editable a mano
     results: {},         // { "A-0-0": { score1, score2 } }
     bracket: null        // ver estructura en bracket.js
   };
