@@ -18,9 +18,23 @@
       <a href="#clasificacion">Clasificación</a>
       <a href="#bracket">Bracket</a>
     </div>
+    <div class="nav-social" id="navSocial"></div>
     <button class="nav-toggle" id="navToggle">☰</button>
   </div>
 </nav>
+
+<section class="twitch-bar" id="twitchBar" style="display:none;">
+  <div class="container twitch-bar-inner">
+    <div class="twitch-bar-head">
+      <span class="live-dot"></span>
+      <span class="twitch-bar-title">Transmisión en vivo</span>
+      <a id="twitchOpenLink" href="#" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Ver en Twitch ↗</a>
+    </div>
+    <div class="twitch-embed-wrap">
+      <iframe id="twitchEmbedFrame" allowfullscreen scrolling="no" frameborder="0"></iframe>
+    </div>
+  </div>
+</section>
 
 <header class="hero" id="inicio">
   <div class="container">
