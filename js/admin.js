@@ -7,11 +7,12 @@
    ========================================================= */
 
 const DEFAULT_TEAMS = [
-  "ImNotCuteAnymore","Mi gente apretada","Espadas del Ocaso","Mamitas Club",
-  "Bizcochitos de Biboo","Cuyos Tilteados","Tepigod","Destructores de tetas y qlos",
-  "TTV (Travestis Traviesas Veracruzanas)","Six Or Seven Devil's (SSD)","Mondongos","Vanity",
-  "Los Mas Penudos","taiwan forever","MINITAS A MI MD","LosPapusKarp_2.0",
-  "Its Over Reborn","FF AL 15","La Minita es SUPPORT","T2","Drogos","Alopecios"
+  "ImNotCuteAnymore","Espadas del Ocaso","Mamitas Club","Bizcochitos de Biboo",
+  "TepiGod","TTV (Travestis Traviesas Veracruzanas)","Los Mas Penudos","taiwan forever",
+  "RawrΩrawЯ","Its Over","HPTAS","La Minita Es SUPPORT",
+  "Destructores de tetas y qlos","LosPapusKarp_2.0","Los Alopezicos","Los Drogos",
+  "Six Or Seven Devil's (SSD)","Mondongos","Vanity","T2",
+  "Cuyos Tilteados","Mi Gente Apretada"
 ];
 
 let data = getEmptyTournament(); // se reemplaza en boot() antes de dibujar nada
@@ -394,54 +395,131 @@ el("regenScheduleBtn").addEventListener("click", () => {
 });
 
 /* ============================================================
-   PASO 3 — Resultados
+   PASO 3 — Resultados (+ edición manual del calendario)
+   ---------------------------------------------------------
+   Además de cargar el marcador, cada partido se puede editar
+   a mano: cambiar qué equipos juegan, moverlo a otra jornada,
+   ponerle una hora, o eliminarlo. También se pueden agregar
+   partidos sueltos y jornadas nuevas. Nada de esto afecta a
+   los demás partidos porque cada uno tiene su propio id fijo.
+   "Generar calendario" / "Regenerar calendario" siguen
+   disponibles para armar todo de nuevo al azar cuando se quiera.
    ============================================================ */
 function renderResultsTabs() {
   el("resTabA").className = "tab" + (resView.group === "A" ? " active-A" : "");
   el("resTabB").className = "tab" + (resView.group === "B" ? " active-B" : "");
 
-  const rounds = data.schedule[resView.group];
-  el("resRoundTabs").innerHTML = rounds.map((_, i) =>
-    '<button class="tab round-tab' + (resView.round === i ? " active" : "") + '" data-round="' + i + '">Jornada ' + (i + 1) + "</button>"
-  ).join("");
-  el("resRoundTabs").querySelectorAll("button").forEach((btn) => {
+  const groupSchedule = data.schedule[resView.group];
+  const tabs = [];
+  for (let i = 0; i < groupSchedule.roundsCount; i++) {
+    tabs.push('<button class="tab round-tab' + (resView.round === i ? " active" : "") + '" data-round="' + i + '">Jornada ' + (i + 1) + "</button>");
+  }
+  tabs.push('<button class="tab round-tab" id="addRoundBtn" title="Agregar una jornada nueva vacía">+ Jornada</button>');
+  el("resRoundTabs").innerHTML = tabs.join("");
+  el("resRoundTabs").querySelectorAll(".round-tab[data-round]").forEach((btn) => {
     btn.addEventListener("click", () => {
       resView.round = Number(btn.dataset.round);
       renderResults();
     });
   });
+  el("addRoundBtn").addEventListener("click", () => {
+    groupSchedule.roundsCount++;
+    resView.round = groupSchedule.roundsCount - 1;
+    persist();
+    renderResults();
+  });
+}
+
+/** Construye el <select> con los equipos del grupo para elegir rival */
+function teamSelectHtml(className, groupTeams, selected) {
+  const opts = groupTeams.map((t) =>
+    '<option value="' + escapeHtml(t) + '"' + (t === selected ? " selected" : "") + ">" + escapeHtml(t) + "</option>"
+  ).join("");
+  return '<select class="' + className + '">' + opts + "</select>";
+}
+
+/** Construye el <select> de jornada para mover el partido */
+function roundSelectHtml(roundsCount, selected) {
+  let opts = "";
+  for (let i = 0; i < roundsCount; i++) {
+    opts += '<option value="' + i + '"' + (i === selected ? " selected" : "") + ">Jornada " + (i + 1) + "</option>";
+  }
+  return '<select class="match-round-select">' + opts + "</select>";
 }
 
 function renderResults() {
   renderResultsTabs();
-  const rounds = data.schedule[resView.group][resView.round];
+  const group = resView.group;
+  const groupSchedule = data.schedule[group];
   const list = el("resultsList");
   list.innerHTML = "";
 
-  const byeTeam = getByeTeam(data.groups[resView.group], rounds);
-  if (byeTeam) {
+  const resting = teamsRestingInRound(groupSchedule, resView.round);
+  if (resting.length) {
     const notice = document.createElement("div");
     notice.className = "field-hint";
     notice.style.marginBottom = "10px";
-    notice.textContent = "😴 Descansa esta jornada: " + byeTeam;
+    notice.textContent = "😴 Sin partido cargado esta jornada: " + resting.join(", ");
     list.appendChild(notice);
   }
 
-  rounds.forEach((pair, matchIndex) => {
-    const key = matchKey(resView.group, resView.round, matchIndex);
+  const roundMatches = matchesInRound(groupSchedule, resView.round);
+  roundMatches.forEach((match) => {
+    const key = matchKey(group, match.id);
     const res = data.results[key] || {};
     const row = document.createElement("div");
-    row.className = "result-row " + resView.group;
+    row.className = "result-row-wrap";
     row.innerHTML =
-      '<span class="result-team right">' + escapeHtml(pair[0]) + "</span>" +
-      '<input type="number" min="0" class="score1" value="' + (res.score1 ?? "") + '" />' +
-      '<span class="result-vs">VS</span>' +
-      '<input type="number" min="0" class="score2" value="' + (res.score2 ?? "") + '" />' +
-      '<span class="result-team">' + escapeHtml(pair[1]) + "</span>" +
-      '<button class="btn btn-secondary result-save">Guardar</button>';
+      '<div class="result-row ' + group + '">' +
+        teamSelectHtml("result-team-select left", groupSchedule.teams, match.t1) +
+        '<input type="number" min="0" class="score1" value="' + (res.score1 ?? "") + '" />' +
+        '<span class="result-vs">VS</span>' +
+        '<input type="number" min="0" class="score2" value="' + (res.score2 ?? "") + '" />' +
+        teamSelectHtml("result-team-select", groupSchedule.teams, match.t2) +
+        '<button class="btn btn-secondary result-save">Guardar</button>' +
+      "</div>" +
+      '<div class="result-row-extra">' +
+        '<label>Jornada: ' + roundSelectHtml(groupSchedule.roundsCount, match.round) + "</label>" +
+        '<label>Hora: <input type="text" class="match-time-input" placeholder="Ej: Sábado 20:00hs" value="' + escapeHtml(match.time || "") + '" /></label>' +
+        '<button class="btn btn-ghost btn-sm match-delete" title="Eliminar este partido">✕ Eliminar partido</button>' +
+      "</div>";
 
+    const t1Select = row.querySelector(".result-team-select.left");
+    const t2Select = row.querySelector(".result-team-select:not(.left)");
     const s1 = row.querySelector(".score1");
     const s2 = row.querySelector(".score2");
+    const roundSelect = row.querySelector(".match-round-select");
+    const timeInput = row.querySelector(".match-time-input");
+
+    t1Select.addEventListener("change", () => {
+      match.t1 = t1Select.value;
+      persist();
+      renderStandingsAdmin();
+    });
+    t2Select.addEventListener("change", () => {
+      match.t2 = t2Select.value;
+      persist();
+      renderStandingsAdmin();
+    });
+    roundSelect.addEventListener("change", () => {
+      match.round = Number(roundSelect.value);
+      persist();
+      renderResults();
+    });
+    timeInput.addEventListener("change", () => {
+      match.time = timeInput.value.trim();
+      persist();
+    });
+    row.querySelector(".match-delete").addEventListener("click", () => {
+      const ok = confirm("¿Eliminar este partido (" + match.t1 + " vs " + match.t2 + ")? También se borra su resultado si tenía uno cargado.");
+      if (!ok) return;
+      const idx = groupSchedule.matches.indexOf(match);
+      if (idx !== -1) groupSchedule.matches.splice(idx, 1);
+      delete data.results[key];
+      persist();
+      renderResults();
+      renderStandingsAdmin();
+    });
     row.querySelector(".result-save").addEventListener("click", () => {
       const v1 = s1.value.trim();
       const v2 = s2.value.trim();
@@ -453,6 +531,25 @@ function renderResults() {
     });
     list.appendChild(row);
   });
+
+  const addBtn = document.createElement("button");
+  addBtn.className = "btn btn-ghost btn-sm";
+  addBtn.style.marginTop = "6px";
+  addBtn.textContent = "+ Agregar partido a esta jornada";
+  addBtn.addEventListener("click", () => {
+    const teams = groupSchedule.teams;
+    const newMatch = {
+      id: nextMatchId(groupSchedule, group),
+      t1: teams[0] || "",
+      t2: teams[1] || teams[0] || "",
+      round: resView.round,
+      time: "",
+    };
+    groupSchedule.matches.push(newMatch);
+    persist();
+    renderResults();
+  });
+  list.appendChild(addBtn);
 }
 
 el("resTabA").addEventListener("click", () => { resView = { group: "A", round: 0 }; renderResults(); });
