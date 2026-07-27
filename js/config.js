@@ -46,7 +46,7 @@ const TWITCH_CHANNEL = "notjorgew";
 const TWITCH_PARENT_DOMAINS = [
   "localhost",
   "127.0.0.1",
-  "https://demiizz.github.io/PaginaLoL/", // 👈 reemplazá esto por tu dominio real de GitHub Pages
+  "demiizz.github.io", // 👈 reemplazá esto por tu dominio real de GitHub Pages
 ];
 
 /* =========================================================
