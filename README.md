@@ -60,6 +60,39 @@ en localStorage igual, y tenés un botón **"Exportar data.json"** para bajar el
 archivo y reemplazarlo a mano en el repo (con `"Importar data.json"` para
 retomarlo en otro navegador). Es más manual, pero cero configuración.
 
+## Twitch y Discord
+
+`index.html` muestra, arriba de todo (antes del "Inicio"), el reproductor en
+vivo de Twitch, y en la barra de navegación aparecen dos botones: **Twitch**
+y **Discord**. Es 100% del lado del cliente (un `<iframe>` que apunta a los
+servidores de Twitch) — **no usa JSONBin ni consume nada de esa cuota
+gratis**, son sistemas totalmente separados.
+
+Se configura en `js/config.js`:
+
+```js
+const TWITCH_CHANNEL = "notjorgew";
+const TWITCH_PARENT_DOMAINS = [
+  "localhost",
+  "127.0.0.1",
+  "TU-USUARIO.github.io", // 👈 reemplazá esto por tu dominio real
+];
+const DISCORD_INVITE = "https://discord.gg/CpDXJxTp8W";
+```
+
+**Importante:** Twitch exige declarar el dominio exacto donde se va a
+mostrar el embed (parámetro `parent`) — si no coincide con el dominio real
+donde publicás el sitio, el reproductor no carga. Antes de publicar,
+reemplazá `"TU-USUARIO.github.io"` por tu dominio real de GitHub Pages
+(o el dominio propio que uses). `localhost`/`127.0.0.1` quedan para que
+funcione mientras probás el sitio local.
+
+Si el canal no está en vivo, el propio reproductor de Twitch muestra su
+pantalla de "offline" — no hace falta ninguna lógica extra para detectarlo.
+
+Si no querés mostrar alguno de los dos, simplemente dejá la constante
+correspondiente vacía (`""`) en `config.js` y no aparece.
+
 ## Publicar en GitHub Pages
 
 1. Subí toda esta carpeta a un repositorio de GitHub.
@@ -79,3 +112,16 @@ retomarlo en otro navegador). Es más manual, pero cero configuración.
 - El bracket se puede generar en cualquier momento con el Top 4 actual de cada
   grupo (no espera a que termine la fase de grupos), y "Rehacer bracket" lo
   vuelve a armar si cambiaron los resultados.
+- **Calendario editable a mano**: en el panel "3. Resultados", cada partido
+  se puede editar libremente:
+  - Cambiar qué equipo juega de cada lado (dos selectores arriba del marcador).
+  - Moverlo a otra jornada (selector "Jornada" debajo del partido).
+  - Ponerle una hora/fecha propia (campo "Hora", libre, ej. "Sábado 20:00hs";
+    se ve también en el sitio público, debajo de cada partido).
+  - Eliminarlo ("✕ Eliminar partido"), o agregar partidos sueltos nuevos
+    ("+ Agregar partido a esta jornada") y jornadas nuevas vacías ("+ Jornada").
+  - "Generar calendario" / "Regenerar calendario" siguen armando todo de
+    cero al azar (round-robin parejo) cuando se prefiera eso en vez de editar
+    a mano. Nada de esto rompe los resultados ya cargados de otros partidos:
+    cada partido tiene un id interno fijo, así que moverlo, cambiarle el
+    rival o la jornada no afecta a los demás ni pierde su propio resultado.
