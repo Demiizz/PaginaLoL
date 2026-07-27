@@ -15,7 +15,40 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
-/* ---------- Menú móvil ---------- */
+/* ---------- Twitch (embed en vivo) + Discord ---------- */
+function initSocial() {
+  const social = document.getElementById("navSocial");
+  const hasTwitch = typeof TWITCH_CHANNEL === "string" && TWITCH_CHANNEL.trim() !== "";
+  const hasDiscord = typeof DISCORD_INVITE === "string" && DISCORD_INVITE.trim() !== "";
+
+  let html = "";
+  if (hasTwitch) {
+    html += '<a href="https://twitch.tv/' + encodeURIComponent(TWITCH_CHANNEL) +
+      '" target="_blank" rel="noopener" class="nav-social-btn twitch">' +
+      '<span class="live-dot"></span>Twitch</a>';
+  }
+  if (hasDiscord) {
+    html += '<a href="' + escapeHtml(DISCORD_INVITE) + '" target="_blank" rel="noopener" class="nav-social-btn discord">Discord</a>';
+  }
+  social.innerHTML = html;
+
+  if (hasTwitch) {
+    const bar = document.getElementById("twitchBar");
+    const frame = document.getElementById("twitchEmbedFrame");
+    const openLink = document.getElementById("twitchOpenLink");
+    const parents = (typeof TWITCH_PARENT_DOMAINS !== "undefined" && TWITCH_PARENT_DOMAINS.length)
+      ? TWITCH_PARENT_DOMAINS
+      : [location.hostname];
+    const parentParams = parents.map((p) => "parent=" + encodeURIComponent(p)).join("&");
+    frame.src = "https://player.twitch.tv/?channel=" + encodeURIComponent(TWITCH_CHANNEL) +
+      "&" + parentParams + "&muted=true";
+    openLink.href = "https://twitch.tv/" + encodeURIComponent(TWITCH_CHANNEL);
+    bar.style.display = "block";
+  }
+}
+initSocial();
+
+
 document.getElementById("navToggle").addEventListener("click", () => {
   document.getElementById("navLinks").classList.toggle("open");
 });
@@ -108,22 +141,25 @@ function renderSchedule() {
     return;
   }
 
-  const rounds = publicData.schedule[scheduleView.group];
+  const groupSchedule = publicData.schedule[scheduleView.group];
   const groupToggle = ["A", "B"].map((g) =>
     '<button class="group-toggle-btn' + (scheduleView.group === g ? " active " + g : "") + '" data-group="' + g + '">Grupo ' + g + "</button>"
   ).join("");
 
-  const roundTabs = rounds.map((_, i) =>
-    '<button class="round-tab-btn' + (scheduleView.round === i ? " active" : "") + '" data-round="' + i + '">Jornada ' + (i + 1) + "</button>"
-  ).join("");
+  const roundTabs = [];
+  for (let i = 0; i < groupSchedule.roundsCount; i++) {
+    roundTabs.push(
+      '<button class="round-tab-btn' + (scheduleView.round === i ? " active" : "") + '" data-round="' + i + '">Jornada ' + (i + 1) + "</button>"
+    );
+  }
 
-  const matches = rounds[scheduleView.round].map((pair, matchIndex) =>
-    renderMatchCard(scheduleView.group, scheduleView.round, matchIndex, pair)
-  ).join("");
+  const roundMatches = matchesInRound(groupSchedule, scheduleView.round);
+  const matches = roundMatches.map((match) => renderMatchCard(scheduleView.group, match)).join("") ||
+    '<div class="empty-state">Sin partidos cargados en esta jornada.</div>';
 
   wrap.innerHTML =
     '<div class="group-toggle">' + groupToggle + "</div>" +
-    '<div class="round-tabs">' + roundTabs + "</div>" +
+    '<div class="round-tabs">' + roundTabs.join("") + "</div>" +
     '<div id="matchesList">' + matches + "</div>";
 
   wrap.querySelectorAll(".group-toggle-btn").forEach((btn) => {
@@ -141,9 +177,9 @@ function renderSchedule() {
   });
 }
 
-function renderMatchCard(group, roundIndex, matchIndex, pair) {
-  const [t1, t2] = pair;
-  const key = matchKey(group, roundIndex, matchIndex);
+function renderMatchCard(group, match) {
+  const t1 = match.t1, t2 = match.t2;
+  const key = matchKey(group, match.id);
   const res = publicData.results[key];
   const played = res && Number(res.score1) !== Number(res.score2) &&
     !Number.isNaN(Number(res.score1)) && !Number.isNaN(Number(res.score2));
@@ -160,10 +196,11 @@ function renderMatchCard(group, roundIndex, matchIndex, pair) {
     center = '<span class="match-vs">VS</span>';
     statusHtml = '<span class="match-status pending">Pendiente</span>';
   }
+  const timeHtml = match.time ? '<span class="match-time">🕒 ' + escapeHtml(match.time) + "</span>" : "";
 
   return '<div class="match-card ' + group + '">' +
     '<span class="match-team right">' + escapeHtml(t1) + "</span>" +
-    '<span class="match-center">' + center + statusHtml + "</span>" +
+    '<span class="match-center">' + center + statusHtml + timeHtml + "</span>" +
     '<span class="match-team">' + escapeHtml(t2) + "</span>" +
     "</div>";
 }
