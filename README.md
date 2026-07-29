@@ -36,7 +36,15 @@ mismo bin, así que el público ve tus cambios apenas los guardás — sin pasos
 1. Creá una cuenta gratis en https://jsonbin.io (plan Free: 10.000 requests/mes, sin tarjeta).
 2. Creá un **Bin** nuevo con este contenido inicial:
    ```json
-   {"version":1,"updatedAt":null,"teams":[],"groups":null,"schedule":null,"results":{},"bracket":null}
+   {
+     "version": 1,
+     "updatedAt": null,
+     "teams": [],
+     "groups": null,
+     "schedule": null,
+     "results": {},
+     "bracket": null
+   }
    ```
 3. En la configuración del bin, marcalo como **"Public"** (para que `index.html`
    pueda leerlo sin ninguna key).
@@ -77,7 +85,7 @@ const TWITCH_PARENT_DOMAINS = [
   "127.0.0.1",
   "TU-USUARIO.github.io", // 👈 reemplazá esto por tu dominio real
 ];
-const DISCORD_INVITE = "https://discord.gg/CpDXJxTp8W";
+const DISCORD_INVITE = "https://discord.gg/EeyjED8HAG";
 ```
 
 **Importante:** Twitch exige declarar el dominio exacto donde se va a
